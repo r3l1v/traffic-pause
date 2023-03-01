@@ -16,4 +16,4 @@ Upon adding the extension into Burp Suite, Traffic pauser settings can be invoke
 * Second option `Pause all traffic on string match` if string in the input box below is matched in the response
 * Third option `Pause all traffic on Regex match` if regex in the input box below is matched in the response
 
-![Settings menu](./image/settings.png)
+![Settings menu](./images/settings.png)
