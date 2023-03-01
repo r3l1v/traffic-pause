@@ -41,10 +41,9 @@ public class BurpExtender implements IBurpExtender, IHttpListener
         if(Menu.THROTTLED_COMPONENTS.contains(toolFlag)){
             while (Menu.globalSettings.getBoolean(option)) {
                 try {
-                    stdout.println("Stopping traffic");
-                    Thread.sleep(1000);
+                    Thread.sleep(100000);
                 } catch (java.lang.InterruptedException e) {
-                    stdout.println("Error caused by interrupt exception");
+                    stdout.println("Error caused by interruped exception");
                     return;
                 }
             }
@@ -54,8 +53,7 @@ public class BurpExtender implements IBurpExtender, IHttpListener
     public boolean regexFind(String request){
         Pattern p = Pattern.compile(Menu.globalSettings.getString("Regex to match"));
         Matcher m = p.matcher(request);
-        boolean b = m.find();
-        return b;
+        return m.find();
     }
 
     @Override
@@ -70,10 +68,8 @@ public class BurpExtender implements IBurpExtender, IHttpListener
         }
 
         if(!messageIsRequest && Menu.globalSettings.getBoolean("Pause all traffic on string match") && helpers.bytesToString(messageInfo.getResponse()).contains(Menu.globalSettings.getString("String to match"))){
-            stdout.println("here");
             Menu.traffic_switch_string = true;
         }else if(!messageIsRequest && Menu.globalSettings.getBoolean("Pause all traffic on Regex match") && regexFind(helpers.bytesToString(messageInfo.getResponse()))){
-            stdout.println("here2");
             Menu.traffic_switch_regex = true;
         }
     }
