@@ -1,5 +1,11 @@
-package burp;
-import burp.*;
+package trafficPauser;
+
+import burp.api.montoya.MontoyaApi;
+import burp.api.montoya.ui.menu.Menu;
+import burp.api.montoya.core.Registration;
+import burp.api.montoya.logging.Logging;
+import burp.api.montoya.BurpExtension;
+import burp.api.montoya.persistence.PersistedObject;
 import javax.swing.*;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
@@ -9,71 +15,40 @@ import java.awt.*;
 import java.io.PrintWriter;
 import java.text.NumberFormat;
 import javax.swing.text.NumberFormatter;
+import java.awt.event.ActionEvent;
 
 
-class Menu implements Runnable, MenuListener, IExtensionStateListener{
+class PauserMenu implements MenuListener{
 
     private JMenu menuButton;
-    public static PrintWriter stdout;
-    public static IBurpExtenderCallbacks callbacks;
-    public static IExtensionHelpers helpers;
-    static ConfigurableSettings globalSettings;
+    public static Logging logging;
+    public static MontoyaApi api;
+    private Registration menu;
+    public static ConfigurableSettings globalSettings;
     public static Set<Integer> THROTTLED_COMPONENTS = new HashSet<>();  
     public static boolean traffic_switch_string = false;
     public static boolean traffic_switch_regex = false;  
     
 
-    public Menu(IBurpExtenderCallbacks callbacks){
-        this.stdout = new PrintWriter(callbacks.getStdout(), true);
-        this.callbacks = callbacks;
-        this.helpers = callbacks.getHelpers();
-
-        this.callbacks.registerExtensionStateListener(this);
-
+    public PauserMenu(MontoyaApi api){
+        this.logging = api.logging();
+        this.api = api;
         this.globalSettings = new ConfigurableSettings();
-
-        Integer[] to_throttle = {IBurpExtenderCallbacks.TOOL_TARGET, IBurpExtenderCallbacks.TOOL_SPIDER, IBurpExtenderCallbacks.TOOL_SCANNER, IBurpExtenderCallbacks.TOOL_INTRUDER, IBurpExtenderCallbacks.TOOL_SEQUENCER, IBurpExtenderCallbacks.TOOL_EXTENDER, IBurpExtenderCallbacks.TOOL_REPEATER};
-        Collections.addAll(THROTTLED_COMPONENTS, to_throttle);
+        this.menuButton = new JMenu("Traffic Pauser");
+        this.menuButton.addMenuListener(this);
+        this.menu = api.userInterface().menuBar().registerMenu(this.menuButton);
     } 
-
-    public void run()
-    {
-        menuButton = new JMenu("Pause Traffic");
-        menuButton.addMenuListener(this);
-        JMenuBar burpMenuBar = Menu.getBurpFrame().getJMenuBar();
-        burpMenuBar.add(menuButton);
-    }
-
-    public void menuSelected(MenuEvent e) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run(){
-                globalSettings.showSettings();
-            }
-        });
-    }
 
     public void menuDeselected(MenuEvent e) { }
 
     public void menuCanceled(MenuEvent e) { }
 
-    public void extensionUnloaded() {
-        Menu.getBurpFrame().getJMenuBar().remove(menuButton);
-    }
-
-    static JFrame getBurpFrame()
-    {
-        for(Frame f : Frame.getFrames())
-        {
-            if(f.isVisible() && f.getTitle().startsWith(("Burp Suite")))
-            {
-                return (JFrame) f;
-            }
-        }
-        return null;
+    public void menuSelected(MenuEvent e) {
+        globalSettings.showSettings();
     }
 
     public static void out(String message) {
-        stdout.println(message);
+        logging.logToOutput(message);
     }
 }
 
@@ -90,8 +65,10 @@ class ConfigurableSettings {
         put("Regex to match", "regex");
 
         for(String key: settings.keySet()) {
-            String value = Menu.callbacks.loadExtensionSetting(key);
-            if (Menu.callbacks.loadExtensionSetting(key) != null) {
+            //load extension settings if set
+            PersistedObject myExtensionData = PauserMenu.api.persistence().extensionData();
+            String value = myExtensionData.getString(key);
+            if (value != null) {
                 putRaw(key, value);
             }
         }
@@ -102,7 +79,6 @@ class ConfigurableSettings {
         onlyInt.setMinimum(-1);
         onlyInt.setMaximum(Integer.MAX_VALUE);
         onlyInt.setAllowsInvalid(false);
-
     }
 
     private ConfigurableSettings(ConfigurableSettings base) {
@@ -110,22 +86,10 @@ class ConfigurableSettings {
         onlyInt = base.onlyInt;
     }
 
-    void printSettings() {
+    private void printSettings() {
         for(String key: settings.keySet()) {
-            Menu.out(key + ": "+settings.get(key));
+            PauserMenu.out(key + ": "+settings.get(key));
         }
-    }
-
-    static JFrame getBurpFrame()
-    {
-        for(Frame f : Frame.getFrames())
-        {
-            if(f.isVisible() && f.getTitle().startsWith(("Burp Suite")))
-            {
-                return (JFrame) f;
-            }
-        }
-        return null;
     }
 
     private String encode(Object value) {
@@ -149,9 +113,9 @@ class ConfigurableSettings {
     private void put(String key, Object value) {
         settings.put(key, encode(value));
         if(key == "Pause all traffic on string match" && !(Boolean)value){
-            Menu.traffic_switch_string = false;
+            PauserMenu.traffic_switch_string = false;
         }else if(key == "Pause all traffic on Regex match" && !(Boolean)value){
-            Menu.traffic_switch_regex = false;
+            PauserMenu.traffic_switch_regex = false;
         }
     }
 
@@ -190,6 +154,7 @@ class ConfigurableSettings {
     }
 
     ConfigurableSettings showSettings() {
+
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(0, 2));
         panel.setPreferredSize(new Dimension(600, 120));
@@ -197,7 +162,6 @@ class ConfigurableSettings {
         panel.setMinimumSize(panel.getPreferredSize());
 
         HashMap<String, Object> configured = new HashMap<>();
-
         for(String key: settings.keySet()) {
             String type = getType(key);
             panel.add(new JLabel("\n"+key+": "));
@@ -221,7 +185,7 @@ class ConfigurableSettings {
             }
         }
 
-        int result = JOptionPane.showConfirmDialog(Menu.getBurpFrame(), panel, "Traffic Pause", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        int result = JOptionPane.showConfirmDialog(null, panel, "Traffic Pauser", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
         if (result == JOptionPane.OK_OPTION) {
             for(String key: configured.keySet()) {
                 Object val = configured.get(key);
@@ -235,7 +199,9 @@ class ConfigurableSettings {
                     val = ((JTextField) val).getText();
                 }
                 put(key, val);
-                Menu.callbacks.saveExtensionSetting(key, encode(val));
+                //save extension settings
+                PersistedObject myExtensionData = PauserMenu.api.persistence().extensionData();
+                myExtensionData.setString(key, encode(val));
             }
 
             return new ConfigurableSettings(this);

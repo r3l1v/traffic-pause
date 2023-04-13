@@ -1,23 +1,19 @@
-apply plugin: 'java'
+plugins {
+    id 'java'
+}
+
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
 dependencies {
-    implementation 'net.portswigger.burp.extender:burp-extender-api:1.7.13'
+    compileOnly 'net.portswigger.burp.extensions:montoya-api:2023.3'
 }
 
-sourceSets {
-    main {
-        java {
-            srcDir '.'
-        }
+jar {
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
-}
-
-task fatJar(type: Jar) {
-    baseName = project.name + '-all'
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-    with jar
 }
