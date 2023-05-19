@@ -1,16 +1,21 @@
 package trafficPauser;
 
-import burp.api.montoya.MontoyaApi;
-import burp.api.montoya.core.Annotations;
-import burp.api.montoya.core.HighlightColor;
-import burp.api.montoya.http.handler.*;
-import burp.api.montoya.http.message.requests.HttpRequest;
-import burp.api.montoya.logging.Logging;
-import java.util.regex.*;  
-
 import static burp.api.montoya.http.handler.RequestToBeSentAction.continueWith;
 import static burp.api.montoya.http.handler.ResponseReceivedAction.continueWith;
-import static burp.api.montoya.http.message.params.HttpParameter.urlParameter;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import burp.api.montoya.MontoyaApi;
+import burp.api.montoya.core.Annotations;
+import burp.api.montoya.core.ToolType;
+import burp.api.montoya.core.ToolSource;
+import burp.api.montoya.http.handler.HttpHandler;
+import burp.api.montoya.http.handler.HttpRequestToBeSent;
+import burp.api.montoya.http.handler.HttpResponseReceived;
+import burp.api.montoya.http.handler.RequestToBeSentAction;
+import burp.api.montoya.http.handler.ResponseReceivedAction;
+import burp.api.montoya.logging.Logging;
 
 class MyHttpHandler implements HttpHandler {
     private Logging logging;
@@ -23,7 +28,27 @@ class MyHttpHandler implements HttpHandler {
         this.menu = menu;
     }
 
-    public void pauseTraffic(int toolFlag, String option){
+    public void pauseTraffic(ToolType tool, String option){
+
+        switch(tool){
+            case REPEATER:
+                if(menu.globalSettings.getBoolean("Exclude Repeater")){
+                    return;
+                }
+            case INTRUDER:
+                if(menu.globalSettings.getBoolean("Exclude Intruder")){
+                    return;
+                }
+            case SCANNER:
+                if(menu.globalSettings.getBoolean("Exclude Scanner")){
+                    return;
+                }
+            case PROXY:
+                if(menu.globalSettings.getBoolean("Exclude Proxy")){
+                    return;
+                }
+        }
+
         while (PauserMenu.globalSettings.getBoolean(option)) {
         }
     }
@@ -39,18 +64,14 @@ class MyHttpHandler implements HttpHandler {
     public RequestToBeSentAction handleHttpRequestToBeSent(HttpRequestToBeSent requestToBeSent) {
         Annotations annotations = requestToBeSent.annotations();
 
-        //tool flag to be used later 
-        Integer toolFlag = 0;
-        //logging.logToOutput("Request To be Sent");
-
-        //this.logging.logToOutput(requestToBeSent.toolSource().toolType().toString());
+        ToolType tool_type = requestToBeSent.toolSource().toolType();
 
         if(menu.globalSettings.getBoolean("Pause all traffic")){
-            pauseTraffic(toolFlag, "Pause all traffic");
-        }else if(menu.traffic_switch_string){
-            pauseTraffic(toolFlag, "Pause all traffic on string match");
+            pauseTraffic(tool_type, "Pause all traffic");
+        }else if(PauserMenu.traffic_switch_string){
+            pauseTraffic(tool_type, "Pause all traffic on string match");
         }else if(menu.traffic_switch_regex){
-            pauseTraffic(toolFlag, "Pause all traffic on Regex match");
+            pauseTraffic(tool_type, "Pause all traffic on Regex match");
         }
         
         return continueWith(requestToBeSent, annotations);

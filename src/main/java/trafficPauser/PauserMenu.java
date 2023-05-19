@@ -26,9 +26,14 @@ class PauserMenu implements MenuListener{
     public static MontoyaApi api;
     private Registration menu;
     public static ConfigurableSettings globalSettings;
-    public static Set<ToolType> stopped_tools = new HashSet<>();  
+    public static Set<ToolType> stopped_tools = new HashSet<>(); 
+
     public static boolean traffic_switch_string = false;
     public static boolean traffic_switch_regex = false;  
+    public static boolean traffic_exclude_repeater = false;
+    public static boolean traffic_exclude_intruder = false;
+    public static boolean traffic_exclude_scanner = false;
+    public static boolean traffic_exclude_proxy = false;
     
 
     public PauserMenu(MontoyaApi api){
@@ -128,9 +133,21 @@ class ConfigurableSettings {
                     PauserMenu.traffic_switch_regex = false;
                 }
             case "Exclude Intruder":
+                if(!(Boolean)value){
+                    PauserMenu.traffic_exclude_intruder = false;
+                }
             case "Exclude Repeater":
+                if(!(Boolean)value){
+                    PauserMenu.traffic_exclude_repeater = false;
+                }
             case "Exclude Scanner":
+                if(!(Boolean)value){
+                    PauserMenu.traffic_exclude_scanner = false;
+                }
             case "Exclude Proxy":
+                if(!(Boolean)value){
+                    PauserMenu.traffic_exclude_proxy = false;
+                }
         }
     }
 
