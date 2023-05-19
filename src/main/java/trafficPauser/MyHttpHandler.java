@@ -24,13 +24,7 @@ class MyHttpHandler implements HttpHandler {
     }
 
     public void pauseTraffic(int toolFlag, String option){
-        while (menu.globalSettings.getBoolean(option)) {
-            try {
-                Thread.sleep(100000);
-            } catch (java.lang.InterruptedException e) {
-                logging.logToOutput("Error caused by interruped exception");
-                return;
-            }
+        while (PauserMenu.globalSettings.getBoolean(option)) {
         }
     }
 
