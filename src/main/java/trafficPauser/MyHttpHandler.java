@@ -41,7 +41,9 @@ class MyHttpHandler implements HttpHandler {
 
         //tool flag to be used later 
         Integer toolFlag = 0;
-        logging.logToOutput("Request To be Sent");
+        //logging.logToOutput("Request To be Sent");
+
+        //this.logging.logToOutput(requestToBeSent.toolSource().toolType().toString());
 
         if(menu.globalSettings.getBoolean("Pause all traffic")){
             pauseTraffic(toolFlag, "Pause all traffic");
@@ -59,7 +61,7 @@ class MyHttpHandler implements HttpHandler {
     public ResponseReceivedAction handleHttpResponseReceived(HttpResponseReceived responseReceived) {
         Annotations annotations = responseReceived.annotations();
 
-        logging.logToOutput("Request to be received");
+        //logging.logToOutput("Request to be received");
 
         if(menu.globalSettings.getBoolean("Pause all traffic on string match") && responseReceived.toString().contains(menu.globalSettings.getString("String to match"))){
             menu.traffic_switch_string = true;
