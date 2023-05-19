@@ -3,6 +3,7 @@ package trafficPauser;
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.ui.menu.Menu;
 import burp.api.montoya.core.Registration;
+import burp.api.montoya.core.ToolType;
 import burp.api.montoya.logging.Logging;
 import burp.api.montoya.BurpExtension;
 import burp.api.montoya.persistence.PersistedObject;
@@ -25,7 +26,7 @@ class PauserMenu implements MenuListener{
     public static MontoyaApi api;
     private Registration menu;
     public static ConfigurableSettings globalSettings;
-    public static Set<Integer> THROTTLED_COMPONENTS = new HashSet<>();  
+    public static Set<ToolType> stopped_tools = new HashSet<>();  
     public static boolean traffic_switch_string = false;
     public static boolean traffic_switch_regex = false;  
     
@@ -63,6 +64,11 @@ class ConfigurableSettings {
         put("String to match", "string");
         put("Pause all traffic on Regex match", false);
         put("Regex to match", "regex");
+        //Tools to exclude from the stop
+        put("Exclude Intruder", false);
+        put("Exclude Repeater", false);
+        put("Exclude Scanner", false);
+        put("Exclude Proxy", false);
 
         for(String key: settings.keySet()) {
             //load extension settings if set
@@ -112,10 +118,19 @@ class ConfigurableSettings {
 
     private void put(String key, Object value) {
         settings.put(key, encode(value));
-        if(key == "Pause all traffic on string match" && !(Boolean)value){
-            PauserMenu.traffic_switch_string = false;
-        }else if(key == "Pause all traffic on Regex match" && !(Boolean)value){
-            PauserMenu.traffic_switch_regex = false;
+        switch(key){
+            case "Pause all traffic on string match":
+                if(!(Boolean)value){
+                    PauserMenu.traffic_switch_string = false;
+                }
+            case "Pause all traffic on Regex match":
+                if(!(Boolean)value){
+                    PauserMenu.traffic_switch_regex = false;
+                }
+            case "Exclude Intruder":
+            case "Exclude Repeater":
+            case "Exclude Scanner":
+            case "Exclude Proxy":
         }
     }
 
@@ -157,7 +172,7 @@ class ConfigurableSettings {
 
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(0, 2));
-        panel.setPreferredSize(new Dimension(600, 120));
+        panel.setPreferredSize(new Dimension(600, 250));
         panel.setMaximumSize(panel.getPreferredSize()); 
         panel.setMinimumSize(panel.getPreferredSize());
 

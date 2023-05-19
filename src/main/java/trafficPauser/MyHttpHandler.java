@@ -65,7 +65,7 @@ class MyHttpHandler implements HttpHandler {
     public ResponseReceivedAction handleHttpResponseReceived(HttpResponseReceived responseReceived) {
         Annotations annotations = responseReceived.annotations();
 
-        logging.logToOutput("Request to be recieved");
+        logging.logToOutput("Request to be received");
 
         if(menu.globalSettings.getBoolean("Pause all traffic on string match") && responseReceived.toString().contains(menu.globalSettings.getString("String to match"))){
             menu.traffic_switch_string = true;
