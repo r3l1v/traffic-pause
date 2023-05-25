@@ -34,6 +34,7 @@ class PauserMenu implements MenuListener{
     public static boolean traffic_exclude_intruder = false;
     public static boolean traffic_exclude_scanner = false;
     public static boolean traffic_exclude_proxy = false;
+    public static boolean traffic_exclude_extensions = false;
     
 
     public PauserMenu(MontoyaApi api){
@@ -74,6 +75,7 @@ class ConfigurableSettings {
         put("Exclude Repeater", false);
         put("Exclude Scanner", false);
         put("Exclude Proxy", false);
+        put("Exclude Extensions", false);
 
         for(String key: settings.keySet()) {
             //load extension settings if set
@@ -147,6 +149,10 @@ class ConfigurableSettings {
             case "Exclude Proxy":
                 if(!(Boolean)value){
                     PauserMenu.traffic_exclude_proxy = false;
+                }
+            case "Exclude Extensions":
+                if(!(Boolean)value){
+                    PauserMenu.traffic_exclude_extensions = false;
                 }
         }
     }

@@ -47,6 +47,10 @@ class MyHttpHandler implements HttpHandler {
                 if(menu.globalSettings.getBoolean("Exclude Proxy")){
                     return;
                 }
+            case EXTENSIONS:
+                if(menu.globalSettings.getBoolean("Exclude Extensions")){
+                    return;
+                }
         }
 
         while (PauserMenu.globalSettings.getBoolean(option)) {
