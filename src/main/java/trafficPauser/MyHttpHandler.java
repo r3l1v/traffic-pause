@@ -29,30 +29,6 @@ class MyHttpHandler implements HttpHandler {
     }
 
     public void pauseTraffic(ToolType tool, String option){
-
-        switch(tool){
-            case REPEATER:
-                if(menu.globalSettings.getBoolean("Exclude Repeater")){
-                    return;
-                }
-            case INTRUDER:
-                if(menu.globalSettings.getBoolean("Exclude Intruder")){
-                    return;
-                }
-            case SCANNER:
-                if(menu.globalSettings.getBoolean("Exclude Scanner")){
-                    return;
-                }
-            case PROXY:
-                if(menu.globalSettings.getBoolean("Exclude Proxy")){
-                    return;
-                }
-            case EXTENSIONS:
-                if(menu.globalSettings.getBoolean("Exclude Extensions")){
-                    return;
-                }
-        }
-
         while (PauserMenu.globalSettings.getBoolean(option)) {
         }
     }
