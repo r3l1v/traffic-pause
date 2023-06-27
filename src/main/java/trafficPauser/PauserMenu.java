@@ -25,7 +25,6 @@ class PauserMenu implements MenuListener {
     public static MontoyaApi api;
     private Registration menu;
     public static ConfigurableSettings globalSettings;
-    public static Set<ToolType> stopped_tools = new HashSet<>();
 
     public static boolean traffic_switch_string = false;
     public static boolean traffic_switch_regex = false;
@@ -330,6 +329,13 @@ class ConfigurableSettings {
                 // save extension settings
                 PersistedObject myExtensionData = PauserMenu.api.persistence().extensionData();
                 myExtensionData.setString(key, encode(val));
+            }
+
+            for(JCheckBox key : tools_regex.keySet()){
+                PauserMenu.regex_match_tools.put(tools_regex.get(key), key.isSelected());
+            }
+            for(JCheckBox key : tools_string.keySet()){
+                PauserMenu.string_match_tools.put(tools_string.get(key), key.isSelected());
             }
 
             return new ConfigurableSettings(this);
