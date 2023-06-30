@@ -28,8 +28,24 @@ class MyHttpHandler implements HttpHandler {
         this.menu = menu;
     }
 
-    public void pauseTraffic(ToolType tool, String option){
+    public void pauseTraffic(String option){
         while (PauserMenu.globalSettings.getBoolean(option)) {
+        }
+    }
+
+    public void pauseTrafficTool(ToolType tool_type, Integer map_switch,String option){
+        // map_switch - which set of tools to check
+        //           0 - regex hashmap 
+        //           1 - string hashmap
+        // Pause on regex match / pause on string match
+
+        switch(map_switch){
+            case 0:
+                while (PauserMenu.globalSettings.getBoolean(option) && menu.regex_match_tools.get(tool_type.toString().toUpperCase())) {
+                }
+            case 1 :
+                while (PauserMenu.globalSettings.getBoolean(option) && menu.string_match_tools.get(tool_type.toString().toUpperCase())) {
+                }
         }
     }
 
@@ -47,11 +63,16 @@ class MyHttpHandler implements HttpHandler {
         ToolType tool_type = requestToBeSent.toolSource().toolType();
 
         if(menu.globalSettings.getBoolean("Pause all traffic")){
-            pauseTraffic(tool_type, "Pause all traffic");
-        }else if(PauserMenu.traffic_switch_string){
-            pauseTraffic(tool_type, "Pause all traffic on string match");
-        }else if(menu.traffic_switch_regex){
-            pauseTraffic(tool_type, "Pause all traffic on Regex match");
+
+            pauseTraffic("Pause all traffic");
+
+        }else if(PauserMenu.traffic_switch_string && menu.string_match_tools.get(tool_type.toString().toUpperCase())){
+
+            pauseTrafficTool(tool_type, 1,"Pause all traffic on string match");
+
+        }else if(menu.traffic_switch_regex && menu.regex_match_tools.get(tool_type.toString().toUpperCase())){
+
+            pauseTrafficTool(tool_type, 0,"Pause all traffic on Regex match");
         }
         
         return continueWith(requestToBeSent, annotations);
@@ -62,11 +83,17 @@ class MyHttpHandler implements HttpHandler {
     public ResponseReceivedAction handleHttpResponseReceived(HttpResponseReceived responseReceived) {
         Annotations annotations = responseReceived.annotations();
 
-        //logging.logToOutput("Request to be received");
+        ToolType tool_type = responseReceived.toolSource().toolType();
 
-        if(menu.globalSettings.getBoolean("Pause all traffic on string match") && responseReceived.toString().contains(menu.globalSettings.getString("String to match"))){
+        if(menu.globalSettings.getBoolean("Pause all traffic on string match") 
+            && responseReceived.toString().contains(menu.globalSettings.getString("String to match"))
+            && menu.string_match_tools.get(tool_type.toString().toUpperCase())
+        ){
             menu.traffic_switch_string = true;
-        }else if(menu.globalSettings.getBoolean("Pause all traffic on Regex match") && regexFind(responseReceived.toString())){
+        }else if(menu.globalSettings.getBoolean("Pause all traffic on Regex match")
+                && regexFind(responseReceived.toString())
+                && menu.regex_match_tools.get(tool_type.toString().toUpperCase())
+        ){
             menu.traffic_switch_regex = true;
         }
 

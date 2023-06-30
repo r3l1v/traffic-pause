@@ -189,8 +189,10 @@ class ConfigurableSettings {
 
     void setupTools(JPanel panel, GridBagConstraints c, Integer row, Boolean map_switch) {
 
-        //map_switch 0 - regex hashmap
+        // map_switch - which set of tools to check
+        //           0 - regex hashmap 
         //           1 - string hashmap
+        // Pause on regex match / pause on string match
 
         // adding left most label to the grid
         c.gridx = 0;
@@ -223,25 +225,6 @@ class ConfigurableSettings {
             panel.add(key, c);
             c.gridx += 2;
         }
-
-        // for (String key : PauserMenu.regex_match_tools.keySet()) {
-        //     label = new JLabel(key.substring(0, 1) + key.substring(1).toLowerCase());
-        //     c.insets = new Insets(2, 0, 5, 0);
-        //     panel.add(label, c);
-        //     c.gridx += 2;
-
-        // }
-        // c.gridx = 2;
-        // // adding checkboxes to the grid
-        // JCheckBox box;
-        // for (Boolean value : PauserMenu.regex_match_tools.values()) {
-        //     box = new JCheckBox();
-        //     box.setSelected(value);
-        //     c.insets = new Insets(2, 0, 5, 20);
-        //     panel.add(box, c);
-
-        //     c.gridx += 2;
-        // }
     }
 
     ConfigurableSettings showSettings() {
